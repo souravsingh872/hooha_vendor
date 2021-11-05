@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hooha_vendor/Model/loginModel.dart';
+import 'package:hooha_vendor/Services/loginResponse.dart';
 import 'package:sizer/sizer.dart';
 
 
@@ -14,6 +16,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  TextEditingController emailTextController = TextEditingController();
+
+  TextEditingController passwordTextController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                      SizedBox(width: 20,),
                      Expanded(
                        child: TextField(
+                         controller: emailTextController,
                          decoration: InputDecoration(
                            border: InputBorder.none,
                            hintText: 'enter your email',
@@ -101,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                      SizedBox(width: 20,),
                      Expanded(
                        child: TextField(
+                         controller: passwordTextController,
                          decoration: InputDecoration(
                            border: InputBorder.none,
                            hintText: 'enter your password',
@@ -118,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                GestureDetector(
                  onTap: (){
-                   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>HomeScreen()));
+                   checkValidation(context);
                  },
                  child: Container(
                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -143,5 +150,72 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       )
     );
+  }
+
+  void checkValidation(BuildContext context) {
+    if(emailTextController.text.trim().isEmpty){
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Alert!'),
+              content: Text("Enter Your email id",
+                  style: TextStyle(fontSize: 15, fontFamily: "PoppinsRegular")),
+              actions: [
+                GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                        margin: EdgeInsets.fromLTRB(0, 0, 20, 20),
+                        child: Text("OK",
+                            style: TextStyle(
+                                fontSize: 15, fontFamily: "PoppinsRegular")))),
+              ],
+            );
+          });
+    }
+    else if(passwordTextController.text.trim().isEmpty){
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Alert!'),
+              content: Text("Enter Your Password",
+                  style: TextStyle(fontSize: 15, fontFamily: "PoppinsRegular")),
+              actions: [
+                GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                        margin: EdgeInsets.fromLTRB(0, 0, 20, 20),
+                        child: Text("OK",
+                            style: TextStyle(
+                                fontSize: 15, fontFamily: "PoppinsRegular")))),
+              ],
+            );
+          });
+    }
+    else{
+     Map map ={
+       "email":emailTextController.text.toString(),
+       "password":passwordTextController.text.toString()
+      };
+    var loginresponse=LoginResponse.loginUser(map);
+    loginresponse.then((value) {
+      LoginModel model=LoginModel.fromJson(value);
+
+      if(model.statusCode==200){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
+        print("authToken::::${model.data.accessToken}");
+      }
+      else{
+        print("Failed::::::::: ${model.message}");
+      }
+    });
+
+    }
+
   }
 }
